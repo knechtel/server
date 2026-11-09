@@ -1,39 +1,46 @@
 import webserver
+import maiosfs
 import ujson
 
-from database import Database
+ARQUIVO = "usuarios.json"
 
-db = Database()
+
+def carregar_usuarios():
+    try:
+        conteudo = maiosfs.read(ARQUIVO)
+        return ujson.loads(conteudo)
+    except:
+        return []
+
+
+def salvar_usuarios(usuarios):
+    conteudo = ujson.dumps(usuarios)
+    maiosfs.write(ARQUIVO, conteudo)
+
 
 def page(method, path):
 
-    if path == "/":
+    # Página inicial
+    if method == "GET" and path == "/":
         return """
-        <h1>maiOs Web Server</h1>
-        <a href="/usuarios">Consultar usuários</a>
+        <h1>maiOs API</h1>
+        <p>Servidor funcionando!</p>
         """
 
-    elif path == "/usuarios":
-
-        usuarios = db.select("usuarios")
-
-        html = "<h1>Usuários do maiOs</h1>"
-
-        for usuario in usuarios:
-            html += "<p>"
-            html += str(usuario["id"]) + " - "
-            html += usuario["nome"]
-            html += "</p>"
-
-        return html
-
-    elif path == "/api/usuarios":
-
-        usuarios = db.select("usuarios")
-
+    # Consultar usuários
+    if method == "GET" and path == "/api/usuarios":
+        usuarios = carregar_usuarios()
         return ujson.dumps(usuarios)
 
-    return "Página não encontrada: " + path
+    # Inserir usuário
+    if method == "POST" and path == "/api/usuarios":
+
+        # Precisamos obter o corpo HTTP aqui.
+        # Exemplo: {"nome":"Maiquel"}
+
+        return "Endpoint POST preparado"
+
+    return "404 - Not Found"
 
 
 webserver.serve(page)
