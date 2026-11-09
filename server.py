@@ -22,9 +22,9 @@ def carregar_usuarios():
 
                 if len(campos) == 3:
                     usuarios.append({
-                        "id": campos[0],
-                        "nome": campos[1],
-                        "email": campos[2]
+                        "id": 1,
+                        "nome": "maiquel",
+                        "email": "knechtel"
                     })
 
         return usuarios
