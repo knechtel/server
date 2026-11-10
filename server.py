@@ -94,7 +94,7 @@ def page(method, path):
           valor += usuario[1] + " " + usuario[2] + "<br>"
 
         conn.close()
-        return """
+        return f"""
         <h1>maiOs Server</h1>
         <p>Servidor funcionando!</p>
         {valor}
