@@ -1,4 +1,3 @@
-
 import webserver
 import maiosfs
 
@@ -63,6 +62,37 @@ def page(method, path):
 
     if method == "GET" and path == "/":
 
+        # Criar ou abrir banco de dados
+        conn = sqlite3.connect("usuarios.db")
+
+        # Criar cursor
+        cursor = conn.cursor()
+
+        # Criar tabela
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        email TEXT
+          )
+        """)
+
+        # Inserir usuário
+        cursor.execute(
+        "INSERT INTO usuarios (nome, email) VALUES (?, ?)",
+        ("Maiquel", "maiquel@email.com")
+        )
+
+        # Salvar
+        conn.commit()
+
+        # Consultar
+        cursor.execute("SELECT * FROM usuarios")
+
+        for usuario in cursor.fetchall():
+         print(usuario)
+
+        conn.close()
         return """
         <h1>maiOs Server</h1>
         <p>Servidor funcionando!</p>
