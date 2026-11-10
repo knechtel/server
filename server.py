@@ -88,14 +88,15 @@ def page(method, path):
 
         # Consultar
         cursor.execute("SELECT * FROM usuarios")
-
+        valor =""
         for usuario in cursor.fetchall():
-         print(usuario)
+          valor = valor +usuario.nome+ " " + usuario.email
 
         conn.close()
         return """
         <h1>maiOs Server</h1>
         <p>Servidor funcionando!</p>
+        {valor}
         """
 
     elif method == "GET" and path == "/api/usuarios":
