@@ -89,8 +89,9 @@ def page(method, path):
         # Consultar
         cursor.execute("SELECT * FROM usuarios")
         valor =""
+       
         for usuario in cursor.fetchall():
-          valor = valor +usuario.nome+ " " + usuario.email
+          valor += usuario[1] + " " + usuario[2] + "<br>"
 
         conn.close()
         return """
