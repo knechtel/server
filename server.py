@@ -114,7 +114,9 @@ def page(method, path):
                 usuario["nome"] + " - " +
                 usuario["email"] +
                 "</p>"
+                
             )
+            json.dumps(usuario)
 
         return resultado
 
