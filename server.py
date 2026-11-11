@@ -210,6 +210,6 @@ def page2(method, path, body):
 
 
 
-webserver.serve(page2)
+webserver.serve(page2,body)
 webserver.serve(page)
 
