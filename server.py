@@ -4,6 +4,24 @@ import sqlite3
 import json
 ARQUIVO = "usuarios.txt"
 
+def listar_usuarios():
+    conn = sqlite3.connect("usuarios.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM usuarios")
+
+    usuarios = []
+
+    for usuario in cursor.fetchall():
+        usuarios.append({
+            "id": usuario[0],
+            "nome": usuario[1],
+            "email": usuario[2]
+        })
+
+    conn.close()
+
+    return usuarios
 
 def carregar_usuarios():
     try:
@@ -103,22 +121,10 @@ def page(method, path):
 
     elif method == "GET" and path == "/api/usuarios":
 
-        usuarios = carregar_usuarios()
+        
+        usuarios = listar_usuarios()
 
-        resultado = "<h1>Usuarios cadastrados</h1>"
-
-        for usuario in usuarios:
-            resultado += (
-                "<p>" +
-                usuario["id"] + " - " +
-                usuario["nome"] + " - " +
-                usuario["email"] +
-                "</p>"
-                
-            )
-            json.dumps(usuario)
-
-        return resultado
+        return json.dumps(usuarios, ensure_ascii=False)
 
     elif method == "POST" and path == "/api/usuarios":
 
