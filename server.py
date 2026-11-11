@@ -193,11 +193,11 @@ def page2(method, path, body):
         """
 
     # GET - Listar usuarios
-    elif method == "GET" and path == "/api/usuarios":
+    if method == "GET" and path == "/api/usuarios":
         return resposta(listar_usuarios())
 
     # DELETE - Remover usuario
-    elif method == "DELETE" and path.startswith("/api/usuarios"):
+    if method == "DELETE" and path.startswith("/api/usuarios"):
         return deletar_usuario(path)
 
     return resposta({
