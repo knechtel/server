@@ -199,7 +199,7 @@ def page2(method, path, body):
 
 
     # POST - Adicionar usuario
-    elif method == "POST" and path == "/api/usuarios":
+    if method == "POST" and path == "/api/usuarios":
         return adicionar_usuario(body)
 
     return resposta({
