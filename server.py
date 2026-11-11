@@ -43,44 +43,71 @@ def listar_usuarios():
     conn.close()
     return usuarios
 
+
+
+
 def adicionar_usuario(body):
 
-    print("BODY:", repr(body))
-
-    if not body:
-        return resposta({
-            "erro": "Corpo HTTP vazio",
-            "body": repr(body)
-        })
+    print("BODY RECEBIDO:", repr(body))
+    print("TIPO DO BODY:", type(body))
 
     try:
+        # Verifica se o body está vazio
+        if not body:
+            return resposta({
+                "erro": "Body vazio"
+            })
+
+        # Se vier em bytes
         if isinstance(body, bytes):
             body = body.decode("utf-8")
 
-        dados = json.loads(body)
+        # Se já vier como dicionário
+        if isinstance(body, dict):
+            dados = body
+        else:
+            dados = json.loads(body)
 
         nome = dados.get("nome")
         email = dados.get("email")
 
+        if not nome or not email:
+            return resposta({
+                "erro": "Nome e email são obrigatórios",
+                "dados_recebidos": dados
+            })
+
         conn, cursor = conectar()
 
-        cursor.execute(
-            "INSERT INTO usuarios (nome, email) VALUES (?, ?)",
-            (nome, email)
-        )
+        cursor.execute("""
+            INSERT INTO usuarios (nome, email)
+            VALUES (?, ?)
+        """, (nome, email))
 
         novo_id = cursor.lastrowid
 
         conn.commit()
+
         conn.close()
 
+        print("USUARIO INSERIDO:", novo_id)
+
         return resposta({
-            "mensagem": "Usuario cadastrado",
-            "id": novo_id
+            "mensagem": "Usuario cadastrado com sucesso",
+            "id": novo_id,
+            "nome": nome,
+            "email": email
         })
 
     except Exception as erro:
-        return resposta({"erro": str(erro)})
+
+        print("ERRO NO INSERT:", str(erro))
+
+        return resposta({
+            "erro": str(erro)
+        })
+
+
 
 def adicionar_usuario1(body):
     try:
