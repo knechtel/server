@@ -1,15 +1,36 @@
+
 import webserver
-import maiosfs
 import sqlite3
 import json
-ARQUIVO = "usuarios.txt"
 
-def listar_usuarios():
-    conn = sqlite3.connect("usuarios.db")
+
+BANCO = "usuarios.db"
+
+
+def conectar():
+    conn = sqlite3.connect(BANCO)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM usuarios")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            email TEXT NOT NULL
+        )
+    """)
 
+    conn.commit()
+    return conn, cursor
+
+
+def resposta(data):
+    return json.dumps(data, ensure_ascii=False)
+
+
+def listar_usuarios():
+    conn, cursor = conectar()
+
+    cursor.execute("SELECT id, nome, email FROM usuarios")
     usuarios = []
 
     for usuario in cursor.fetchall():
@@ -20,122 +41,125 @@ def listar_usuarios():
         })
 
     conn.close()
-
     return usuarios
 
-def carregar_usuarios():
+
+def adicionar_usuario(body):
     try:
-        conteudo = maiosfs.read(ARQUIVO)
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
 
-        if isinstance(conteudo, bytes):
-            conteudo = conteudo.decode()
+        dados = json.loads(body)
 
-        usuarios = []
+        nome = dados.get("nome")
+        email = dados.get("email")
 
-        for linha in conteudo.split("\n"):
-            linha = linha.strip()
+        if not nome or not email:
+            return resposta({
+                "erro": "Nome e email sao obrigatorios"
+            })
 
-            if linha:
-                campos = linha.split("|")
+        conn, cursor = conectar()
 
-                if len(campos) == 3:
-                    usuarios.append({
-                        "id": 1,
-                        "nome": "maiquel",
-                        "email": "knechtel"
-                    })
-
-        return usuarios
-
-    except:
-        return []
-
-
-def salvar_usuario(nome, email):
-    usuarios = carregar_usuarios()
-
-    novo_id = len(usuarios) + 1
-
-    registro = str(novo_id) + "|" + nome + "|" + email
-
-    try:
-        conteudo = maiosfs.read(ARQUIVO)
-
-        if isinstance(conteudo, bytes):
-            conteudo = conteudo.decode()
-
-        if conteudo and not conteudo.endswith("\n"):
-            conteudo += "\n"
-
-    except:
-        conteudo = ""
-
-    conteudo += registro + "\n"
-
-    maiosfs.write(ARQUIVO, conteudo)
-
-    return novo_id
-
-
-def page(method, path):
-
-    if method == "GET" and path == "/":
-
-        # Criar ou abrir banco de dados
-        conn = sqlite3.connect("usuarios.db")
-
-        # Criar cursor
-        cursor = conn.cursor()
-
-        # Criar tabela
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        email TEXT
-          )
-        """)
-
-        # Inserir usuário
         cursor.execute(
-        "INSERT INTO usuarios (nome, email) VALUES (?, ?)",
-        ("Maiquel", "maiquel@email.com")
+            "INSERT INTO usuarios (nome, email) VALUES (?, ?)",
+            (nome, email)
         )
 
-        # Salvar
+        novo_id = cursor.lastrowid
+
         conn.commit()
-
-        # Consultar
-        cursor.execute("SELECT * FROM usuarios")
-        valor =""
-       
-        for usuario in cursor.fetchall():
-          valor += usuario[1] + " " + usuario[2] + "<br>"
-
         conn.close()
-        return f"""
+
+        return resposta({
+            "mensagem": "Usuario cadastrado",
+            "id": novo_id,
+            "nome": nome,
+            "email": email
+        })
+
+    except Exception as erro:
+        return resposta({"erro": str(erro)})
+
+
+def deletar_usuario(path):
+    try:
+        # Extrair parametros da URL
+        parametros = path.split("?", 1)
+
+        if len(parametros) < 2:
+            return resposta({
+                "erro": "Informe o parametro id"
+            })
+
+        query = parametros[1]
+        usuario_id = None
+
+        for parametro in query.split("&"):
+            campos = parametro.split("=", 1)
+
+            if len(campos) == 2 and campos[0] == "id":
+                usuario_id = int(campos[1])
+                break
+
+        if usuario_id is None:
+            return resposta({
+                "erro": "ID nao informado"
+            })
+
+        conn, cursor = conectar()
+
+        cursor.execute(
+            "DELETE FROM usuarios WHERE id = ?",
+            (usuario_id,)
+        )
+
+        removidos = cursor.rowcount
+
+        conn.commit()
+        conn.close()
+
+        if removidos == 0:
+            return resposta({
+                "erro": "Usuario nao encontrado"
+            })
+
+        return resposta({
+            "mensagem": "Usuario removido",
+            "id": usuario_id
+        })
+
+    except Exception as erro:
+        return resposta({"erro": str(erro)})
+
+
+def page(method, path, body=""):
+
+    # GET - Pagina inicial
+    if method == "GET" and path == "/":
+        conectar()[0].close()
+
+        return """
         <h1>maiOs Server</h1>
         <p>Servidor funcionando!</p>
-        {valor}
         """
 
+    # GET - Listar usuarios
     elif method == "GET" and path == "/api/usuarios":
+        return resposta(listar_usuarios())
 
-        
-        usuarios = listar_usuarios()
-
-        return json.dumps(usuarios, ensure_ascii=False)
-
+    # POST - Adicionar usuario
     elif method == "POST" and path == "/api/usuarios":
+        return adicionar_usuario(body)
 
-        # Ainda precisamos integrar a leitura
-        # do corpo HTTP do webserver.
+    # DELETE - Remover usuario
+    elif method == "DELETE" and path.startswith("/api/usuarios"):
+        return deletar_usuario(path)
 
-        return "POST: aguardando implementacao do body"
-
-    return "404 - Not Found"
+    return resposta({
+        "erro": "404 - Not Found"
+    })
 
 
 webserver.serve(page)
-
 
