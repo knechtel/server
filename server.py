@@ -171,7 +171,7 @@ def deletar_usuario(path):
         return resposta({"erro": str(erro)})
 
 
-def page(method, path, body=""):
+
 
   
 
@@ -182,9 +182,6 @@ def page2(method, path, body):
     if method == "POST" and path == "/api/usuarios":
         return adicionar_usuario(body)
 
-    return resposta({
-        "erro": "404 - Not Found"
-    })
 
   # GET - Pagina inicial
     if method == "GET" and path == "/":
