@@ -171,7 +171,7 @@ def deletar_usuario(path):
         return resposta({"erro": str(erro)})
 
 
-def page(method, path, body):
+def page(method, path, body=""):
 
     # GET - Pagina inicial
     if method == "GET" and path == "/":
@@ -186,10 +186,6 @@ def page(method, path, body):
     elif method == "GET" and path == "/api/usuarios":
         return resposta(listar_usuarios())
 
-    # POST - Adicionar usuario
-    elif method == "POST" and path == "/api/usuarios":
-        return adicionar_usuario(body)
-
     # DELETE - Remover usuario
     elif method == "DELETE" and path.startswith("/api/usuarios"):
         return deletar_usuario(path)
@@ -198,5 +194,22 @@ def page(method, path, body):
         "erro": "404 - Not Found"
     })
 
+
+def page2(method, path, body):
+
+
+    # POST - Adicionar usuario
+    elif method == "POST" and path == "/api/usuarios":
+        return adicionar_usuario(body)
+
+    return resposta({
+        "erro": "404 - Not Found"
+    })
+
+
+
+
+
+webserver.serve(page2)
 webserver.serve(page)
 
