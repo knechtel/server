@@ -43,8 +43,46 @@ def listar_usuarios():
     conn.close()
     return usuarios
 
-
 def adicionar_usuario(body):
+
+    print("BODY:", repr(body))
+
+    if not body:
+        return resposta({
+            "erro": "Corpo HTTP vazio",
+            "body": repr(body)
+        })
+
+    try:
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+
+        dados = json.loads(body)
+
+        nome = dados.get("nome")
+        email = dados.get("email")
+
+        conn, cursor = conectar()
+
+        cursor.execute(
+            "INSERT INTO usuarios (nome, email) VALUES (?, ?)",
+            (nome, email)
+        )
+
+        novo_id = cursor.lastrowid
+
+        conn.commit()
+        conn.close()
+
+        return resposta({
+            "mensagem": "Usuario cadastrado",
+            "id": novo_id
+        })
+
+    except Exception as erro:
+        return resposta({"erro": str(erro)})
+
+def adicionar_usuario1(body):
     try:
         if isinstance(body, bytes):
             body = body.decode("utf-8")
