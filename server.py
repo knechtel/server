@@ -200,17 +200,15 @@ def deletar_usuario(path):
 
 
 
-  
 
-def page2(method, path, body):
+def page(method, path, body):
 
 
     # POST - Adicionar usuario
     if method == "POST" and path == "/api/usuarios":
         return adicionar_usuario(body)
 
-
-  # GET - Pagina inicial
+    # GET - Pagina inicial
     if method == "GET" and path == "/":
         conectar()[0].close()
 
@@ -232,7 +230,5 @@ def page2(method, path, body):
     })
 
 
-
-
-webserver.serve(page2)
+webserver.serve(page)
 
